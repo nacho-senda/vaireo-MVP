@@ -1,30 +1,93 @@
-# Vaireo_MVP
+# Vaireo  
+*Smart Scouting for AgriTech & FoodTech Startups*
 
-*Automatically synced with your [v0.app](https://v0.app) deployments*
+Vaireo es un MVP diseñado para acelerar el análisis, descubrimiento y comprensión de startups dentro del vertical **AgriTech y FoodTech**. Combina un **recomendador basado en datos estructurados** con un **chatbot de consulta en lenguaje natural**, permitiendo explorar startups desde una base de datos viva (Google Sheets) sin necesidad de infraestructura compleja.
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/nacho-sendavcs-projects/v0-vaireo)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.app-black?style=for-the-badge)](https://v0.app/chat/3i2csuYQAIS)
+---
 
-## Overview
+## 🚀 Características principales
 
-This repository will stay in sync with your deployed chats on [v0.app](https://v0.app).
-Any changes you make to your deployed app will be automatically pushed to this repository from [v0.app](https://v0.app).
+### 🔍 Recomendador de Startups  
+- Conectado a Google Sheets como base de datos principal  
+- Interfaz dinámica montada en **v0.dev**  
+- Autoadaptación a las columnas de la hoja  
+- Listas, tarjetas y vistas personalizables  
+- Búsqueda y filtrado rápido por campos clave  
 
-## Deployment
+### 💬 Chatbot de Consulta  
+- Permite preguntas en lenguaje natural sobre las startups  
+- Ideal para análisis y descubrimiento rápido  
+- Integrable con modelos LLM externos  
 
-Your project is live at:
+### 🧩 Backend sin servidores  
+- API generada con Google Apps Script  
+- Devuelve datos en formato JSON  
+- Sin servidores, sin mantenimiento, sin despliegues complejos  
 
-**[https://vercel.com/nacho-sendavcs-projects/v0-vaireo](https://vercel.com/nacho-sendavcs-projects/v0-vaireo)**
+---
 
-## Build your app
+## 🧱 Arquitectura
+Google Sheets + Hubspot (bases de datos)
+│
+▼
+Google Apps Script (API REST JSON)
+│
+▼
+v0.dev (UI │ Recomendador │ Chatbot)
 
-Continue building your app on:
 
-**[https://v0.app/chat/3i2csuYQAIS](https://v0.app/chat/3i2csuYQAIS)**
+---
 
-## How It Works
+## 🗂 Estructura del Dataset  
+La hoja de Google Sheets utiliza estos campos como encabezados:
 
-1. Create and modify your project using [v0.app](https://v0.app)
-2. Deploy your chats from the v0 interface
-3. Changes are automatically pushed to this repository
-4. Vercel deploys the latest version from this repository
+- ID  
+- Nombre  
+- Descripción  
+- Región (CCAA)  
+- Año  
+- Vertical  
+- Subvertical  
+- Tecnología  
+- ODS principal  
+- Tipo de impacto  
+- Indicador de impacto  
+- Escala de impacto  
+- Población beneficiada / target  
+- Diversidad del equipo  
+- Nivel de madurez  
+- Inversión total (€)  
+- Contacto  
+- Web  
+- Fuente de información  
+
+La UI se adapta automáticamente a estos nombres.
+
+---
+
+
+## 🧭 Roadmap
+
+ Filtros avanzados (impacto, madurez, región)
+
+ Matching algorítmico usando embeddings
+
+ Enriquecimiento automático con fuentes externas
+
+ Dashboard analítico sobre el dealflow
+
+ Sistema de favoritos / shortlist
+
+ Exportación a CSV/Excel/PDF
+
+
+---
+
+
+## 📩 Contacto
+
+Vaireo — Senda Partners
+
+📧 nacho@senda.partners
+
+🌐 https://senda.partners
