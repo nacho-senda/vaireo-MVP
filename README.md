@@ -1,93 +1,115 @@
-# Vaireo  
-*Smart Scouting for AgriTech & FoodTech Startups*
+# Vaireo
 
-Vaireo es un MVP diseñado para acelerar el análisis, descubrimiento y comprensión de startups dentro del vertical **AgriTech y FoodTech**. Combina un **recomendador basado en datos estructurados** con un **chatbot de consulta en lenguaje natural**, permitiendo explorar startups desde una base de datos viva (Google Sheets) sin necesidad de infraestructura compleja.
+Plataforma para explorar y conectar con el ecosistema de startups agroalimentarias en España.
 
----
+## Sobre el proyecto
 
-## 🚀 Características principales
+Vaireo nace de la necesidad de tener un punto centralizado donde consultar información sobre las startups, tecnologías y actores del sector AgriFood en España. Esta plataforma facilita el descubrimiento de nuevos proyectos, análisis de tendencias y conexión entre emprendedores e inversores del sector.
 
-### 🔍 Recomendador de Startups  
-- Conectado a Google Sheets como base de datos principal  
-- Interfaz dinámica montada en **v0.dev**  
-- Autoadaptación a las columnas de la hoja  
-- Listas, tarjetas y vistas personalizables  
-- Búsqueda y filtrado rápido por campos clave  
+## Funcionalidades
 
-### 💬 Chatbot de Consulta  
-- Permite preguntas en lenguaje natural sobre las startups  
-- Ideal para análisis y descubrimiento rápido  
-- Integrable con modelos LLM externos  
+- Base de datos con 75+ startups del ecosistema AgriFood español
+- Sistema de filtros por vertical, tecnología, región y ODS
+- Panel de analíticas con visualización de datos del sector
+- Asistente de IA para consultar información sobre startups
+- Gestión de proyectos colaborativos
+- Integración con Google Sheets y HubSpot
 
-### 🧩 Backend sin servidores  
-- API generada con Google Apps Script  
-- Devuelve datos en formato JSON  
-- Sin servidores, sin mantenimiento, sin despliegues complejos  
+## Stack técnico
 
----
+Este proyecto está construido con:
 
-## 🧱 Arquitectura
-Google Sheets + Hubspot (bases de datos)
-│
-▼
-Google Apps Script (API REST JSON)
-│
-▼
-v0.dev (UI │ Recomendador │ Chatbot)
+- Next.js 14 con App Router
+- React 19 y TypeScript
+- Tailwind CSS v4 para estilos
+- shadcn/ui y Radix UI para componentes
+- Recharts para visualización de datos
+- Vercel AI SDK para el asistente de IA
+- Framer Motion para animaciones
 
+## Empezar
 
----
+Clona el repositorio e instala las dependencias:
 
-## 🗂 Estructura del Dataset  
-La hoja de Google Sheets utiliza estos campos como encabezados:
+\`\`\`bash
+git clone https://github.com/tu-usuario/vaireo.git
+cd vaireo
+npm install
+\`\`\`
 
-- ID  
-- Nombre  
-- Descripción  
-- Región (CCAA)  
-- Año  
-- Vertical  
-- Subvertical  
-- Tecnología  
-- ODS principal  
-- Tipo de impacto  
-- Indicador de impacto  
-- Escala de impacto  
-- Población beneficiada / target  
-- Diversidad del equipo  
-- Nivel de madurez  
-- Inversión total (€)  
-- Contacto  
-- Web  
-- Fuente de información  
+Configura las variables de entorno copiando el archivo de ejemplo:
 
-La UI se adapta automáticamente a estos nombres.
+\`\`\`bash
+cp .env.local.example .env.local
+\`\`\`
 
----
+Necesitarás configurar:
 
+- `OPENAI_API_KEY` - Para el asistente de IA
+- `GOOGLE_SHEETS_API_KEY` - Para sincronización con Google Sheets
+- `GOOGLE_SHEETS_SPREADSHEET_ID` - ID de tu spreadsheet
+- Opcionalmente `HUBSPOT_ACCESS_TOKEN` para integración con HubSpot
 
-## 🧭 Roadmap
+Ejecuta el servidor de desarrollo:
 
- Filtros avanzados (impacto, madurez, región)
+\`\`\`bash
+npm run dev
+\`\`\`
 
- Matching algorítmico usando embeddings
+Abre [http://localhost:3000](http://localhost:3000) en tu navegador.
 
- Enriquecimiento automático con fuentes externas
+## Estructura
 
- Dashboard analítico sobre el dealflow
+\`\`\`
+app/                    # Rutas y páginas
+├── actions/           # Server actions
+├── api/              # Endpoints de API
+├── analytics/        # Dashboard de analíticas
+├── projects/         # Gestión de proyectos
+└── startups/         # Directorio de startups
 
- Sistema de favoritos / shortlist
+components/            # Componentes React
+├── ui/               # Componentes base
+└── ...               # Componentes específicos
 
- Exportación a CSV/Excel/PDF
+lib/                  # Utilidades y lógica
+├── startups-data.ts  # Gestión de datos
+├── analytics-data.ts # Lógica de analytics
+└── hubspot-connector.ts # Integración HubSpot
 
+data/                 # Datos estáticos
+└── startups.csv      # Base de datos principal
 
----
+docs/                 # Documentación adicional
+\`\`\`
 
+## Datos
 
-## 📩 Contacto
+Los datos de las startups se encuentran en `data/startups.csv` e incluyen información sobre más de 75 empresas del sector, con detalles sobre su vertical, tecnologías, ubicación, ODS y más.
 
-Vaireo — Senda Partners
+El asistente de IA tiene acceso a estos datos y puede responder preguntas sobre las startups del ecosistema.
 
-📧 nacho@senda.partners
+## Despliegue
 
-🌐 https://senda.partners
+La forma más sencilla de desplegar es usando Vercel:
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new)
+
+También puedes desplegarlo en cualquier plataforma compatible con Next.js como Netlify, Railway o AWS.
+
+## Contribuir
+
+Si quieres contribuir al proyecto:
+
+1. Haz fork del repositorio
+2. Crea una rama para tu feature
+3. Haz commit de tus cambios
+4. Abre un Pull Request
+
+## Licencia
+
+MIT
+
+## Contacto
+
+Para preguntas o sugerencias sobre el proyecto, abre un issue en GitHub.

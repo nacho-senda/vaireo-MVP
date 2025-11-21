@@ -1,104 +1,106 @@
-import { consumeStream, convertToModelMessages, streamText, tool, type UIMessage } from "ai"
-import { z } from "zod"
-import { getStartups, type Startup } from "@/lib/startups-data"
-
 export const maxDuration = 30
 
 export async function POST(req: Request) {
-  const { messages }: { messages: UIMessage[] } = await req.json()
+  try {
+    const { messages } = await req.json()
 
-  const prompt = convertToModelMessages(messages)
+    if (!messages || !Array.isArray(messages) || messages.length === 0) {
+      return new Response(JSON.stringify({ error: "Mensajes inválidos" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      })
+    }
 
-  const result = streamText({
-    model: "openai/gpt-4o-mini",
-    prompt,
-    abortSignal: req.signal,
-    system: `Eres un asistente experto del ecosistema agroalimentario español, especializado en la plataforma Vaireo. 
+    if (!process.env.OPENAI_API_KEY) {
+      return new Response(JSON.stringify({ error: "API key no configurada" }), {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      })
+    }
 
-Tu conocimiento incluye:
-- Startups agroalimentarias españolas y sus tecnologías
-- Análisis de tendencias del sector agroalimentario
-- Información sobre financiación y rondas de inversión
-- Tecnologías innovadoras en agricultura y alimentación
-- Conexiones entre inversores, mentores y emprendedores
-
-Características de tu personalidad:
-- Profesional pero cercano
-- Respuestas claras y concisas
-- Enfocado en datos y análisis cuando sea relevante
-- Proactivo en sugerir recursos de la plataforma Vaireo
-
-Cuando te pregunten sobre startups específicas, usa la herramienta searchStartups para buscar información actualizada.
-
-Siempre responde en español y mantén un tono profesional pero amigable.`,
-    tools: {
-      searchStartups: tool({
-        description:
-          "Busca startups en la base de datos. Puedes buscar por nombre, vertical, tecnología, región o cualquier término relacionado. También puedes obtener todas las startups si no especificas ningún término.",
-        inputSchema: z.object({
-          searchTerm: z.string().optional().describe("Término de búsqueda (nombre, vertical, tecnología, etc.)"),
-          vertical: z.string().optional().describe("Filtrar por vertical específico"),
-          region: z.string().optional().describe("Filtrar por región específica"),
-        }),
-        execute: async ({ searchTerm, vertical, region }) => {
-          const allStartups = getStartups()
-
-          let filtered = allStartups
-
-          if (searchTerm) {
-            const term = searchTerm.toLowerCase()
-            filtered = filtered.filter(
-              (s) =>
-                s.Nombre.toLowerCase().includes(term) ||
-                s.Descripción.toLowerCase().includes(term) ||
-                s.Vertical.toLowerCase().includes(term) ||
-                s.Subvertical.toLowerCase().includes(term) ||
-                s.Tecnología.toLowerCase().includes(term)
-            )
-          }
-
-          if (vertical) {
-            filtered = filtered.filter((s) => s.Vertical.toLowerCase().includes(vertical.toLowerCase()))
-          }
-
-          if (region) {
-            filtered = filtered.filter((s) => s["Región (CCAA)"].toLowerCase().includes(region.toLowerCase()))
-          }
-
-          // Limitar resultados a 10 para no sobrecargar el contexto
-          const results = filtered.slice(0, 10)
-
-          return {
-            total: filtered.length,
-            showing: results.length,
-            startups: results.map((s) => ({
-              id: s.ID,
-              nombre: s.Nombre,
-              descripcion: s.Descripción,
-              region: s["Región (CCAA)"],
-              año: s.Año,
-              vertical: s.Vertical,
-              subvertical: s.Subvertical,
-              tecnologia: s.Tecnología,
-              ods_principal: s["ODS principal"],
-              tipo_de_impacto: s["Tipo de impacto"],
-              nivel_de_madurez: s["Nivel de madurez"],
-              inversion_total: s["Inversión total (€)"],
-              website: s.Web,
-              contacto: s.Contacto,
-            })),
-          }
-        },
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "system",
+            content:
+              "Eres un asistente experto del ecosistema agroalimentario español. Responde de manera directa, concisa y precisa.",
+          },
+          ...messages,
+        ],
+        stream: true,
+        temperature: 0.7,
+        max_tokens: 500,
       }),
-    },
-  })
+    })
 
-  return result.toUIMessageStreamResponse({
-    onFinish: async ({ isAborted }) => {
-      if (isAborted) {
-        console.log("[v0] Chat aborted")
-      }
-    },
-    consumeSseStream: consumeStream,
-  })
+    if (!response.ok) {
+      throw new Error(`OpenAI API error: ${response.status}`)
+    }
+
+    const encoder = new TextEncoder()
+    const decoder = new TextDecoder()
+
+    const readable = new ReadableStream({
+      async start(controller) {
+        try {
+          const reader = response.body?.getReader()
+          if (!reader) throw new Error("No reader available")
+
+          while (true) {
+            const { done, value } = await reader.read()
+            if (done) break
+
+            const chunk = decoder.decode(value)
+            const lines = chunk.split("\n").filter((line) => line.trim() !== "")
+
+            for (const line of lines) {
+              if (line.startsWith("data: ")) {
+                const data = line.slice(6)
+                if (data === "[DONE]") continue
+
+                try {
+                  const parsed = JSON.parse(data)
+                  const content = parsed.choices?.[0]?.delta?.content
+                  if (content) {
+                    controller.enqueue(encoder.encode(content))
+                  }
+                } catch (e) {
+                  // Skip invalid JSON
+                }
+              }
+            }
+          }
+          controller.close()
+        } catch (error) {
+          controller.error(error)
+        }
+      },
+    })
+
+    return new Response(readable, {
+      headers: {
+        "Content-Type": "text/plain; charset=utf-8",
+        "Transfer-Encoding": "chunked",
+      },
+    })
+  } catch (error) {
+    console.error("[v0] Error en API chat:", error)
+    return new Response(
+      JSON.stringify({
+        error: "Error al procesar la solicitud",
+        details: error instanceof Error ? error.message : String(error),
+      }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      },
+    )
+  }
 }

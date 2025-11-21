@@ -1,5 +1,7 @@
 import { Navigation } from "@/components/navigation"
 import { ChatInterface } from "@/components/chat-interface"
+import Link from "next/link"
+import { Database, BarChart3, FolderGit2 } from "lucide-react"
 
 export default function HomePage() {
   return (
@@ -32,16 +34,16 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
             <div className="space-y-2">
-              <div className="text-4xl font-bold text-primary">20+</div>
+              <div className="text-4xl font-bold text-primary">75</div>
               <div className="text-muted-foreground">Startups Registradas</div>
             </div>
             <div className="space-y-2">
-              <div className="text-4xl font-bold text-primary">€50M+</div>
+              <div className="text-4xl font-bold text-primary">€200M+</div>
               <div className="text-muted-foreground">Financiación Total</div>
             </div>
             <div className="space-y-2">
-              <div className="text-4xl font-bold text-primary">15+</div>
-              <div className="text-muted-foreground">Ciudades Representadas</div>
+              <div className="text-4xl font-bold text-primary">17</div>
+              <div className="text-muted-foreground">Comunidades Autónomas</div>
             </div>
           </div>
         </div>
@@ -58,29 +60,47 @@ export default function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div className="text-center p-6 rounded-lg border border-border hover:shadow-lg transition-shadow">
-              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <div className="w-6 h-6 bg-primary rounded"></div>
+            <Link
+              href="/startups"
+              className="text-center p-6 rounded-lg border border-border hover:shadow-lg hover:border-primary/50 transition-all group"
+            >
+              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-4 group-hover:bg-primary/20 transition-colors">
+                <Database className="w-6 h-6 text-primary" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">Directorio de Startups</h3>
-              <p className="text-muted-foreground">Explora startups innovadoras del sector agroalimentario español</p>
-            </div>
+              <h3 className="text-xl font-semibold mb-2 group-hover:text-primary transition-colors">
+                Directorio de Startups
+              </h3>
+              <p className="text-muted-foreground">
+                Explora las 75 startups innovadoras del sector agroalimentario español
+              </p>
+            </Link>
 
-            <div className="text-center p-6 rounded-lg border border-border hover:shadow-lg transition-shadow">
-              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <div className="w-6 h-6 bg-primary rounded"></div>
+            <Link
+              href="/analytics"
+              className="text-center p-6 rounded-lg border border-border hover:shadow-lg hover:border-primary/50 transition-all group"
+            >
+              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-4 group-hover:bg-primary/20 transition-colors">
+                <BarChart3 className="w-6 h-6 text-primary" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">Análisis de Datos</h3>
+              <h3 className="text-xl font-semibold mb-2 group-hover:text-primary transition-colors">
+                Análisis de Datos
+              </h3>
               <p className="text-muted-foreground">Insights y métricas clave del ecosistema agroalimentario</p>
-            </div>
+            </Link>
 
-            <div className="text-center p-6 rounded-lg border border-border hover:shadow-lg transition-shadow">
-              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <div className="w-6 h-6 bg-primary rounded"></div>
+            {/* Repositorios de Proyectos */}
+            <Link
+              href="/projects"
+              className="text-center p-6 rounded-lg border border-border hover:shadow-lg hover:border-primary/50 transition-all group"
+            >
+              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-4 group-hover:bg-primary/20 transition-colors">
+                <FolderGit2 className="w-6 h-6 text-primary" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">Red de Colaboración</h3>
-              <p className="text-muted-foreground">Conecta con inversores, mentores y socios estratégicos</p>
-            </div>
+              <h3 className="text-xl font-semibold mb-2 group-hover:text-primary transition-colors">
+                Repositorios de Proyectos
+              </h3>
+              <p className="text-muted-foreground">Accede a los repositorios de proyectos innovadores del sector</p>
+            </Link>
           </div>
         </div>
       </section>
