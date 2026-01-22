@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { TrendingUp, Users, Target, AlertTriangle, CheckCircle, Calendar, Mail, Phone } from 'lucide-react'
-import type { Startup } from "@/lib/startups-data"
+import type { Startup } from "@/lib/utils/formatting"
 
 interface StartupProfileContentProps {
   startup: Startup

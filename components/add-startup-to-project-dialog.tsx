@@ -8,13 +8,18 @@ import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Search, Building2, MapPin, TrendingUp } from "lucide-react"
-import type { Project } from "@/lib/projects-data"
+
+interface Project {
+  id: string
+  name: string
+  participants: string[]
+}
 
 interface Startup {
-  name: string
-  location: string
-  fundingStage: string
-  technologyFocus: string[]
+  Nombre: string
+  "Región (CCAA)": string
+  "Nivel de madurez"?: string
+  Tecnología?: string
 }
 
 interface AddStartupToProjectDialogProps {
@@ -36,14 +41,14 @@ export function AddStartupToProjectDialog({
   const [selectedStartups, setSelectedStartups] = useState<string[]>([])
 
   // Filter out startups already in the project
-  const availableToAdd = availableStartups.filter((startup) => !project.participants.includes(startup.name))
+  const availableToAdd = availableStartups.filter((startup) => !project.participants.includes(startup.Nombre))
 
   // Filter by search query
   const filteredStartups = availableToAdd.filter(
     (startup) =>
-      startup.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      startup.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      startup.technologyFocus.some((tech) => tech.toLowerCase().includes(searchQuery.toLowerCase())),
+      startup.Nombre.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      startup["Región (CCAA)"].toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (startup.Tecnología && startup.Tecnología.toLowerCase().includes(searchQuery.toLowerCase())),
   )
 
   const handleToggleStartup = (startupName: string) => {
@@ -108,13 +113,13 @@ export function AddStartupToProjectDialog({
               {filteredStartups.length > 0 ? (
                 filteredStartups.map((startup) => (
                   <div
-                    key={startup.name}
+                    key={startup.Nombre}
                     className="flex items-start space-x-3 p-4 rounded-lg border hover:bg-accent/50 transition-colors cursor-pointer"
-                    onClick={() => handleToggleStartup(startup.name)}
+                    onClick={() => handleToggleStartup(startup.Nombre)}
                   >
                     <Checkbox
-                      checked={selectedStartups.includes(startup.name)}
-                      onCheckedChange={() => handleToggleStartup(startup.name)}
+                      checked={selectedStartups.includes(startup.Nombre)}
+                      onCheckedChange={() => handleToggleStartup(startup.Nombre)}
                       className="mt-1"
                     />
                     <div className="flex-1 space-y-2">
@@ -122,32 +127,32 @@ export function AddStartupToProjectDialog({
                         <div>
                           <h4 className="font-semibold flex items-center gap-2">
                             <Building2 className="h-4 w-4 text-muted-foreground" />
-                            {startup.name}
+                            {startup.Nombre}
                           </h4>
                           <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
                             <span className="flex items-center gap-1">
                               <MapPin className="h-3 w-3" />
-                              {startup.location}
+                              {startup["Región (CCAA)"]}
                             </span>
                             <span className="flex items-center gap-1">
                               <TrendingUp className="h-3 w-3" />
-                              {startup.fundingStage}
+                              {startup["Nivel de madurez"] || "N/A"}
                             </span>
                           </div>
                         </div>
                       </div>
-                      <div className="flex flex-wrap gap-1">
-                        {startup.technologyFocus.slice(0, 3).map((tech) => (
-                          <Badge key={tech} variant="secondary" className="text-xs">
-                            {tech}
-                          </Badge>
-                        ))}
-                        {startup.technologyFocus.length > 3 && (
-                          <Badge variant="secondary" className="text-xs">
-                            +{startup.technologyFocus.length - 3}
-                          </Badge>
-                        )}
-                      </div>
+                      {startup.Tecnología && (
+                        <div className="flex flex-wrap gap-1">
+                          {String(startup.Tecnología)
+                            .split(",")
+                            .slice(0, 3)
+                            .map((tech, i) => (
+                              <Badge key={i} variant="secondary" className="text-xs">
+                                {tech.trim()}
+                              </Badge>
+                            ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))

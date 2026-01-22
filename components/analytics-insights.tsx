@@ -1,7 +1,12 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { TrendingUp, MapPin, Zap, AlertCircle } from 'lucide-react'
-import type { AnalyticsData } from "@/lib/analytics-data"
+
+interface AnalyticsData {
+  locationDistribution: { location: string; count: number; percentage: number }[]
+  technologyDistribution: { technology: string; count: number; percentage: number }[]
+  fundingByStage: { stage: string; count: number; amount: number }[]
+}
 
 interface AnalyticsInsightsProps {
   data: AnalyticsData
@@ -20,36 +25,38 @@ export function AnalyticsInsights({ data }: AnalyticsInsightsProps) {
       title: "Hub Principal de Innovación",
       description: `${topLocation.location} lidera con ${topLocation.count} startups (${topLocation.percentage.toFixed(1)}% del total)`,
       icon: MapPin,
-      type: "success" as const,
+      type: "Ubicación" as const,
     },
     {
       title: "Tecnología Dominante",
       description: `${topTechnology.technology} es el enfoque más popular con ${topTechnology.count} startups`,
       icon: Zap,
-      type: "info" as const,
+      type: "Tecnología" as const,
     },
     {
       title: "Etapa de Financiación Común",
       description: `${dominantStage.stage} es la etapa más común con ${dominantStage.count} startups`,
       icon: TrendingUp,
-      type: "warning" as const,
+      type: "Financiación" as const,
     },
     {
       title: "Oportunidad de Crecimiento",
       description: "El sector muestra potencial para más inversión en etapas tempranas",
       icon: AlertCircle,
-      type: "info" as const,
+      type: "Oportunidad" as const,
     },
   ]
 
   const getVariantForType = (type: string) => {
     switch (type) {
-      case "success":
+      case "Ubicación":
         return "default"
-      case "warning":
+      case "Tecnología":
         return "secondary"
-      case "info":
+      case "Financiación":
         return "outline"
+      case "Oportunidad":
+        return "default"
       default:
         return "outline"
     }
@@ -57,25 +64,22 @@ export function AnalyticsInsights({ data }: AnalyticsInsightsProps) {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Insights del Ecosistema</CardTitle>
+      <CardHeader className="pb-2 space-y-1">
+        <CardTitle className="text-base">Insights del Ecosistema</CardTitle>
+        <CardDescription className="text-xs">Análisis automático de tendencias clave</CardDescription>
       </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <CardContent className="pt-0">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {insights.map((insight, index) => (
-            <div key={index} className="flex items-start space-x-3 p-4 rounded-lg border">
-              <div className="flex-shrink-0">
-                <insight.icon className="h-5 w-5 text-primary mt-0.5" />
+            <div key={index} className="flex flex-col p-3 rounded-lg border bg-muted/30">
+              <div className="flex items-center gap-2 mb-2">
+                <insight.icon className="h-4 w-4 text-primary shrink-0" />
+                <Badge variant={getVariantForType(insight.type)} className="text-[10px] px-1.5 py-0">
+                  {insight.type}
+                </Badge>
               </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <h4 className="text-sm font-semibold">{insight.title}</h4>
-                  <Badge variant={getVariantForType(insight.type)} className="text-xs">
-                    {insight.type}
-                  </Badge>
-                </div>
-                <p className="text-sm text-muted-foreground">{insight.description}</p>
-              </div>
+              <h4 className="text-xs font-semibold mb-1 line-clamp-1">{insight.title}</h4>
+              <p className="text-[11px] text-muted-foreground line-clamp-2">{insight.description}</p>
             </div>
           ))}
         </div>

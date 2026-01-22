@@ -11,8 +11,19 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { X } from "lucide-react"
-import type { Project } from "@/lib/projects-data"
-import { startupsData } from "@/lib/startups-data"
+
+interface Project {
+  id?: string
+  name: string
+  description: string
+  status: "planning" | "active" | "completed" | "on-hold"
+  startDate: string
+  endDate?: string
+  budget?: number
+  participants: string[]
+  goals: string[]
+  progress: number
+}
 
 interface ProjectFormDialogProps {
   isOpen: boolean
@@ -20,6 +31,12 @@ interface ProjectFormDialogProps {
   onSave: (project: Partial<Project>) => void
   project?: Project | null
 }
+
+const startupsData = [
+  { name: "Startup A" },
+  { name: "Startup B" },
+  { name: "Startup C" },
+]
 
 export function ProjectFormDialog({ isOpen, onClose, onSave, project }: ProjectFormDialogProps) {
   const [formData, setFormData] = useState<Partial<Project>>({

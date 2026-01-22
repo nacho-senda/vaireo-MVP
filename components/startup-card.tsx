@@ -1,15 +1,40 @@
+'use client';
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { ExternalLink, MapPin, Calendar, TrendingUp, Target, FolderPlus, Building2, Lightbulb } from 'lucide-react'
 import Link from "next/link"
-import type { Startup } from "@/lib/startups-data"
-import { formatFunding } from "@/lib/startups-data"
+
+interface Startup {
+  ID?: string
+  Nombre: string
+  Descripción: string
+  "Región (CCAA)": string
+  Año: string
+  Vertical: string
+  Subvertical: string
+  Tecnología: string
+  Web?: string
+  "Nivel de madurez"?: string
+  "Inversión total (€)"?: string
+  Fuente?: string
+  compatibilityScore?: number
+}
 
 interface StartupCardProps {
   startup: Startup
   compatibilityScore?: number
   onAddToProject?: (startup: Startup) => void
+}
+
+function formatFunding(amount: string | number | undefined): string {
+  if (!amount) return "N/A"
+  const num = typeof amount === "string" ? parseFloat(amount.replace(/[^\d.]/g, "")) : amount
+  if (isNaN(num)) return "N/A"
+  if (num >= 1000000) return `€${(num / 1000000).toFixed(1)}M`
+  if (num >= 1000) return `€${(num / 1000).toFixed(1)}K`
+  return `€${num.toFixed(0)}`
 }
 
 export function StartupCard({ startup, compatibilityScore, onAddToProject }: StartupCardProps) {
@@ -71,6 +96,14 @@ export function StartupCard({ startup, compatibilityScore, onAddToProject }: Sta
               {startup["ODS principal"]}
             </div>
           )}
+
+          {startup.Fuente && (
+            <div className="pt-2 border-t">
+              <span className="text-xs text-muted-foreground italic">
+                Fuente: {startup.Fuente}
+              </span>
+            </div>
+          )}
         </div>
 
         <div className="flex flex-wrap gap-1 mb-4">
@@ -124,7 +157,7 @@ export function StartupCard({ startup, compatibilityScore, onAddToProject }: Sta
           <Button
             variant="outline"
             size="sm"
-            className="mt-2 w-full"
+            className="mt-2 w-full bg-transparent"
             onClick={(e) => {
               e.preventDefault()
               onAddToProject(startup)

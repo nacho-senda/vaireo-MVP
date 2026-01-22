@@ -102,5 +102,5 @@ Para consultas de seguridad: security@vaireo.com
 Para soporte general: support@vaireo.com
 \`\`\`
 
-```text file=".nvmrc"
+\`\`\`text file=".nvmrc"
 18.17.0

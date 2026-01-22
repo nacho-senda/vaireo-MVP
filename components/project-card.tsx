@@ -6,14 +6,44 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { Calendar, Users, Target, TrendingUp, Edit, Trash2, UserPlus } from "lucide-react"
-import { type Project, getStatusColor, getStatusLabel } from "@/lib/projects-data"
 import Link from "next/link"
+
+interface Project {
+  id: string
+  name: string
+  description: string
+  status: "planning" | "active" | "completed" | "on-hold"
+  startDate: string
+  progress: number
+  participants: string[]
+  budget?: number
+}
+
+function getStatusColor(status: string): string {
+  const colors: { [key: string]: string } = {
+    active: "bg-green-100 text-green-800",
+    planning: "bg-blue-100 text-blue-800",
+    completed: "bg-gray-100 text-gray-800",
+    "on-hold": "bg-orange-100 text-orange-800",
+  }
+  return colors[status] || ""
+}
+
+function getStatusLabel(status: string): string {
+  const labels: { [key: string]: string } = {
+    active: "Activo",
+    planning: "Planificación",
+    completed: "Completado",
+    "on-hold": "En Pausa",
+  }
+  return labels[status] || status
+}
 
 interface ProjectCardProps {
   project: Project
   onEdit?: (project: Project) => void
   onDelete?: (projectId: string) => void
-  onAddStartups?: (project: Project) => void // Added prop for adding startups
+  onAddStartups?: (project: Project) => void
 }
 
 export function ProjectCard({ project, onEdit, onDelete, onAddStartups }: ProjectCardProps) {

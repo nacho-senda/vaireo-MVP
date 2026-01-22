@@ -1,17 +1,46 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Menu, Leaf } from 'lucide-react'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Menu, Leaf, Settings, User, LogOut, FolderOpen } from 'lucide-react'
 import { cn } from "@/lib/utils"
 import { RegisterDialog } from "@/components/register-dialog"
+import { createClient } from "@/lib/supabase/client"
 
 export function Navigation() {
   const [isOpen, setIsOpen] = useState(false)
+  const [user, setUser] = useState<any>(null)
+  const [isLoading, setIsLoading] = useState(true)
   const pathname = usePathname()
+  const router = useRouter()
+  const isDev = process.env.NODE_ENV === 'development'
+
+  useEffect(() => {
+    const supabase = createClient()
+    
+    // Obtener usuario actual
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUser(user)
+      setIsLoading(false)
+    })
+
+    // Escuchar cambios de auth
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
+
+  const handleSignOut = async () => {
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    router.push("/")
+  }
 
   const navItems = [
     { href: "/", label: "Inicio" },
@@ -30,25 +59,65 @@ export function Navigation() {
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-8">
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "text-sm font-medium transition-colors hover:text-primary",
-                pathname === item.href ? "text-primary" : "text-muted-foreground",
-              )}
-            >
-              {item.label}
-            </Link>
-          ))}
+          {navItems
+            .filter((item) => !item.auth || user)
+            .map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "text-sm font-medium transition-colors hover:text-primary",
+                  pathname === item.href ? "text-primary" : "text-muted-foreground",
+                )}
+              >
+                {item.label}
+              </Link>
+            ))}
         </nav>
 
         <div className="hidden md:flex items-center space-x-4">
-          <Button variant="ghost" size="sm">
-            Iniciar Sesión
-          </Button>
-          <RegisterDialog />
+          {isDev && (
+            <Link href="/admin/import-startups">
+              <Button variant="outline" size="sm">
+                <Settings className="h-4 w-4 mr-2" />
+                Admin
+              </Button>
+            </Link>
+          )}
+          {isLoading ? (
+            <div className="w-20 h-8 bg-muted animate-pulse rounded" />
+          ) : user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="gap-2">
+                  <User className="h-4 w-4" />
+                  <span className="max-w-[120px] truncate">{user.email}</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem asChild>
+                  <Link href="/projects" className="flex items-center gap-2">
+                    <FolderOpen className="h-4 w-4" />
+                    Mis Proyectos
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Cerrar sesión
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <>
+              <Link href="/auth/login">
+                <Button variant="ghost" size="sm">
+                  Iniciar Sesión
+                </Button>
+              </Link>
+              <RegisterDialog />
+            </>
+          )}
         </div>
 
         {/* Mobile Navigation */}
@@ -60,24 +129,50 @@ export function Navigation() {
           </SheetTrigger>
           <SheetContent side="right">
             <div className="flex flex-col space-y-6 mt-8">
-              {navItems.map((item) => (
+              {navItems
+                .filter((item) => !item.auth || user)
+                .map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={cn(
+                      "text-sm font-medium transition-colors hover:text-primary",
+                      pathname === item.href ? "text-primary" : "text-muted-foreground",
+                    )}
+                    onClick={() => setIsOpen(false)}
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              {isDev && (
                 <Link
-                  key={item.href}
-                  href={item.href}
-                  className={cn(
-                    "text-sm font-medium transition-colors hover:text-primary",
-                    pathname === item.href ? "text-primary" : "text-muted-foreground",
-                  )}
+                  href="/admin/import-startups"
+                  className="text-sm font-medium text-muted-foreground hover:text-primary flex items-center gap-2"
                   onClick={() => setIsOpen(false)}
                 >
-                  {item.label}
+                  <Settings className="h-4 w-4" />
+                  Admin
                 </Link>
-              ))}
+              )}
               <div className="flex flex-col space-y-3 pt-6 border-t">
-                <Button variant="ghost" size="sm">
-                  Iniciar Sesión
-                </Button>
-                <RegisterDialog />
+                {user ? (
+                  <>
+                    <p className="text-sm text-muted-foreground truncate">{user.email}</p>
+                    <Button variant="ghost" size="sm" onClick={handleSignOut}>
+                      <LogOut className="h-4 w-4 mr-2" />
+                      Cerrar sesión
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Link href="/auth/login" onClick={() => setIsOpen(false)}>
+                      <Button variant="ghost" size="sm" className="w-full">
+                        Iniciar Sesión
+                      </Button>
+                    </Link>
+                    <RegisterDialog />
+                  </>
+                )}
               </div>
             </div>
           </SheetContent>

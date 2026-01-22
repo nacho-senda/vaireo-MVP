@@ -1,6 +1,6 @@
 "use client"
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Bar,
   BarChart,
@@ -14,53 +14,38 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
+  Legend,
 } from "recharts"
-import { formatFunding } from "@/lib/startups-data"
-import type { AnalyticsData } from "@/lib/analytics-data"
+import { formatFunding } from "@/lib/utils/formatting"
+
+interface AnalyticsData {
+  fundingByStage: { stage: string; amount: number; count: number }[]
+  fundingTrends: { year: number; cumulativeFunding: number; cumulativeStartups: number }[]
+  locationDistribution: { location: string; count: number; percentage: number }[]
+  technologyDistribution: { technology: string; count: number; percentage: number }[]
+}
 
 interface FundingChartsProps {
   data: AnalyticsData
 }
 
-const FUNDING_COLORS = [
-  "hsl(var(--chart-1))", // Azul para financiación
-  "hsl(var(--chart-8))", // Índigo para etapas avanzadas
-  "hsl(var(--chart-4))", // Púrpura para innovación
-  "hsl(var(--chart-3))", // Naranja para crecimiento
-  "hsl(var(--chart-2))", // Verde para sostenibilidad
-]
+// Colores vibrantes para gráficos
+const FUNDING_COLORS = ["#3B82F6", "#8B5CF6", "#EC4899", "#F97316", "#22C55E"]
+const LOCATION_COLORS = ["#14B8A6", "#22C55E", "#3B82F6", "#F97316", "#8B5CF6", "#EC4899", "#EAB308"]
+const TECH_COLORS = ["#F97316", "#8B5CF6", "#3B82F6", "#22C55E", "#14B8A6", "#EC4899"]
+const TREND_COLOR = "#22C55E"
+const GRID_COLOR = "#e5e7eb"
+const AXIS_COLOR = "#6b7280"
 
-const LOCATION_COLORS = [
-  "hsl(var(--chart-5))", // Teal base para geografía
-  "hsl(var(--chart-2))", // Verde
-  "hsl(var(--chart-1))", // Azul
-  "hsl(var(--chart-3))", // Naranja
-  "hsl(var(--chart-4))", // Púrpura
-  "hsl(var(--chart-6))", // Rosa
-  "hsl(var(--chart-7))", // Amarillo
-]
-
-const TECH_COLORS = [
-  "hsl(var(--chart-3))", // Naranja base para tecnología
-  "hsl(var(--chart-4))", // Púrpura
-  "hsl(var(--chart-1))", // Azul
-  "hsl(var(--chart-2))", // Verde
-  "hsl(var(--chart-5))", // Teal
-  "hsl(var(--chart-6))", // Rosa
-  "hsl(var(--chart-7))", // Amarillo
-  "hsl(var(--chart-8))", // Índigo
-]
-
-const TREND_COLOR = "hsl(var(--chart-2))" // Verde para tendencias de crecimiento
-
+// Tooltip personalizado
 const CustomTooltip = ({ active, payload, label, formatter }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-popover border border-border rounded-lg shadow-lg p-3">
-        <p className="font-medium text-sm mb-1">{label}</p>
+      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-lg p-3 text-sm">
+        <p className="font-semibold text-zinc-900 dark:text-zinc-100 mb-1">{label || payload[0]?.payload?.location || payload[0]?.payload?.technology}</p>
         {payload.map((entry: any, index: number) => (
-          <p key={index} className="text-sm" style={{ color: entry.color }}>
-            {entry.name}: {formatter ? formatter(entry.value) : entry.value}
+          <p key={index} style={{ color: entry.color || entry.payload?.fill }}>
+            {entry.name}: <span className="font-medium">{formatter ? formatter(entry.value) : entry.value.toLocaleString()}</span>
           </p>
         ))}
       </div>
@@ -69,130 +54,191 @@ const CustomTooltip = ({ active, payload, label, formatter }: any) => {
   return null
 }
 
+// Leyenda para gráficos de barras
+const BarLegend = ({ items }: { items: { name: string; color: string }[] }) => (
+  <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 mt-3 pt-3 border-t border-zinc-200 dark:border-zinc-700">
+    {items.map((item, i) => (
+      <div key={i} className="flex items-center gap-2">
+        <div className="w-3 h-3 rounded" style={{ backgroundColor: item.color }} />
+        <span className="text-xs text-zinc-600 dark:text-zinc-400">{item.name}</span>
+      </div>
+    ))}
+  </div>
+)
+
+// Leyenda para gráficos circulares
+const PieLegend = ({ payload }: any) => {
+  if (!payload) return null
+  return (
+    <div className="flex flex-wrap justify-center gap-x-3 gap-y-1 mt-2">
+      {payload.map((entry: any, i: number) => (
+        <div key={i} className="flex items-center gap-1.5">
+          <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: entry.color }} />
+          <span className="text-[11px] text-zinc-600 dark:text-zinc-400">{entry.value}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 export function FundingCharts({ data }: FundingChartsProps) {
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      {/* Funding by Stage */}
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      {/* Financiación por Etapa */}
       <Card>
-        <CardHeader>
-          <CardTitle>Financiación por Etapa</CardTitle>
+        <CardHeader className="pb-4">
+          <CardTitle className="text-base font-semibold">Financiación por Etapa</CardTitle>
+          <CardDescription>Capital invertido según fase de desarrollo</CardDescription>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={data.fundingByStage}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-              <XAxis dataKey="stage" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} />
-              <YAxis
-                tickFormatter={(value) => formatFunding(value)}
-                stroke="hsl(var(--muted-foreground))"
-                fontSize={12}
-                tickLine={false}
-                axisLine={false}
-              />
-              <Tooltip content={<CustomTooltip formatter={(value: number) => formatFunding(value)} />} />
-              <Bar dataKey="amount" radius={[8, 8, 0, 0]} maxBarSize={60}>
-                {data.fundingByStage.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={FUNDING_COLORS[index % FUNDING_COLORS.length]} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+          <div className="h-[280px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={data.fundingByStage} margin={{ top: 20, right: 20, left: 20, bottom: 20 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke={GRID_COLOR} vertical={false} />
+                <XAxis 
+                  dataKey="stage" 
+                  tick={{ fill: AXIS_COLOR, fontSize: 12 }}
+                  tickLine={{ stroke: AXIS_COLOR }}
+                  axisLine={{ stroke: GRID_COLOR }}
+                />
+                <YAxis
+                  tickFormatter={(v) => formatFunding(v)}
+                  tick={{ fill: AXIS_COLOR, fontSize: 11 }}
+                  tickLine={{ stroke: AXIS_COLOR }}
+                  axisLine={{ stroke: GRID_COLOR }}
+                  width={70}
+                />
+                <Tooltip content={<CustomTooltip formatter={(v: number) => formatFunding(v)} />} />
+                <Bar dataKey="amount" name="Financiación" radius={[6, 6, 0, 0]}>
+                  {data.fundingByStage.map((_, i) => (
+                    <Cell key={i} fill={FUNDING_COLORS[i % FUNDING_COLORS.length]} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <BarLegend items={data.fundingByStage.map((e, i) => ({ name: e.stage, color: FUNDING_COLORS[i % FUNDING_COLORS.length] }))} />
         </CardContent>
       </Card>
 
-      {/* Funding Trends */}
+      {/* Tendencia de Financiación */}
       <Card>
-        <CardHeader>
-          <CardTitle>Tendencia de Financiación Acumulada</CardTitle>
+        <CardHeader className="pb-4">
+          <CardTitle className="text-base font-semibold">Tendencia de Financiación</CardTitle>
+          <CardDescription>Evolución del capital total invertido por año</CardDescription>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={data.fundingTrends}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-              <XAxis dataKey="year" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} />
-              <YAxis
-                tickFormatter={(value) => formatFunding(value)}
-                stroke="hsl(var(--muted-foreground))"
-                fontSize={12}
-                tickLine={false}
-                axisLine={false}
-              />
-              <Tooltip content={<CustomTooltip formatter={(value: number) => formatFunding(value)} />} />
-              <Line
-                type="monotone"
-                dataKey="cumulativeFunding"
-                stroke={TREND_COLOR}
-                strokeWidth={3}
-                dot={{ fill: TREND_COLOR, r: 4 }}
-                activeDot={{ r: 6, fill: TREND_COLOR }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
+          <div className="h-[280px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={data.fundingTrends} margin={{ top: 20, right: 20, left: 20, bottom: 20 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke={GRID_COLOR} vertical={false} />
+                <XAxis 
+                  dataKey="year" 
+                  tick={{ fill: AXIS_COLOR, fontSize: 12 }}
+                  tickLine={{ stroke: AXIS_COLOR }}
+                  axisLine={{ stroke: GRID_COLOR }}
+                />
+                <YAxis
+                  tickFormatter={(v) => formatFunding(v)}
+                  tick={{ fill: AXIS_COLOR, fontSize: 11 }}
+                  tickLine={{ stroke: AXIS_COLOR }}
+                  axisLine={{ stroke: GRID_COLOR }}
+                  width={70}
+                />
+                <Tooltip content={<CustomTooltip formatter={(v: number) => formatFunding(v)} />} />
+                <Legend 
+                  verticalAlign="bottom"
+                  wrapperStyle={{ paddingTop: 10 }}
+                  formatter={() => <span className="text-xs text-zinc-600 dark:text-zinc-400">Financiación Acumulada</span>}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="cumulativeFunding"
+                  name="Financiación"
+                  stroke={TREND_COLOR}
+                  strokeWidth={3}
+                  dot={{ fill: TREND_COLOR, r: 5, strokeWidth: 2, stroke: "#fff" }}
+                  activeDot={{ r: 7, fill: TREND_COLOR, stroke: "#fff", strokeWidth: 2 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
         </CardContent>
       </Card>
 
-      {/* Location Distribution */}
+      {/* Distribución Geográfica */}
       <Card>
-        <CardHeader>
-          <CardTitle>Distribución Geográfica</CardTitle>
+        <CardHeader className="pb-4">
+          <CardTitle className="text-base font-semibold">Distribución Geográfica</CardTitle>
+          <CardDescription>Startups por comunidad autónoma</CardDescription>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={data.locationDistribution.slice(0, 7)}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ location, percentage }) => `${location} (${percentage.toFixed(1)}%)`}
-                outerRadius={90}
-                dataKey="count"
-                strokeWidth={2}
-                stroke="hsl(var(--background))"
+          <div className="h-[260px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={data.locationDistribution.slice(0, 7)}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={50}
+                  outerRadius={90}
+                  dataKey="count"
+                  nameKey="location"
+                  strokeWidth={3}
+                  stroke="#fff"
+                  label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                  labelLine={false}
+                >
+                  {data.locationDistribution.slice(0, 7).map((_, i) => (
+                    <Cell key={i} fill={LOCATION_COLORS[i % LOCATION_COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip content={<CustomTooltip />} />
+                <Legend content={<PieLegend />} verticalAlign="bottom" />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Tecnologías Populares */}
+      <Card>
+        <CardHeader className="pb-4">
+          <CardTitle className="text-base font-semibold">Tecnologías Populares</CardTitle>
+          <CardDescription>Principales tecnologías del ecosistema</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[280px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart 
+                data={data.technologyDistribution.slice(0, 6)} 
+                layout="vertical" 
+                margin={{ top: 10, right: 30, left: 10, bottom: 10 }}
               >
-                {data.locationDistribution.slice(0, 7).map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={LOCATION_COLORS[index % LOCATION_COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip content={<CustomTooltip />} />
-            </PieChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
-
-      {/* Technology Distribution */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Tecnologías Más Populares</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={350}>
-            <BarChart data={data.technologyDistribution.slice(0, 8)} margin={{ bottom: 60 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-              <XAxis
-                dataKey="technology"
-                stroke="hsl(var(--muted-foreground))"
-                fontSize={11}
-                tickLine={false}
-                angle={-45}
-                textAnchor="end"
-                height={80}
-              />
-              <YAxis
-                stroke="hsl(var(--muted-foreground))"
-                fontSize={12}
-                tickLine={false}
-                axisLine={false}
-                label={{ value: "Cantidad", angle: -90, position: "insideLeft", style: { fontSize: 12 } }}
-              />
-              <Tooltip content={<CustomTooltip />} />
-              <Bar dataKey="count" radius={[8, 8, 0, 0]} maxBarSize={50}>
-                {data.technologyDistribution.slice(0, 8).map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={TECH_COLORS[index % TECH_COLORS.length]} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+                <CartesianGrid strokeDasharray="3 3" stroke={GRID_COLOR} horizontal={false} />
+                <XAxis 
+                  type="number" 
+                  tick={{ fill: AXIS_COLOR, fontSize: 11 }}
+                  tickLine={{ stroke: AXIS_COLOR }}
+                  axisLine={{ stroke: GRID_COLOR }}
+                />
+                <YAxis 
+                  type="category" 
+                  dataKey="technology" 
+                  tick={{ fill: AXIS_COLOR, fontSize: 11 }}
+                  tickLine={false}
+                  axisLine={{ stroke: GRID_COLOR }}
+                  width={100}
+                />
+                <Tooltip content={<CustomTooltip />} />
+                <Bar dataKey="count" name="Startups" radius={[0, 6, 6, 0]} barSize={20}>
+                  {data.technologyDistribution.slice(0, 6).map((_, i) => (
+                    <Cell key={i} fill={TECH_COLORS[i % TECH_COLORS.length]} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </CardContent>
       </Card>
     </div>

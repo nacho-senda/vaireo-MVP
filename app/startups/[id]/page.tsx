@@ -7,7 +7,7 @@ import { StartupProfileContent } from "@/components/startup-profile-content"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from 'lucide-react'
 import { ChatBubble } from "@/components/chat-bubble"
-import type { Startup } from "@/lib/startups-data"
+import type { Startup } from "@/lib/utils/formatting"
 
 interface StartupProfilePageProps {
   params: {
@@ -16,19 +16,16 @@ interface StartupProfilePageProps {
 }
 
 async function getStartupData(slug: string): Promise<Startup | null> {
-  'use server'
-  
   try {
+    // Use the centralized cargarStartups function that now uses Supabase
     const { cargarStartups } = await import('@/app/actions/load-startups')
     const result = await cargarStartups()
     
-    console.log('[v0] Result:', result)
-    
     if (!result.success || !result.data || !Array.isArray(result.data)) {
-      console.error('[v0] Invalid data format:', result)
       return null
     }
     
+    // Find by slug (converted from name or ID)
     const startup = result.data.find((s: Startup) => {
       const idOrName = s.ID ? String(s.ID) : (s.Nombre || '')
       const startupSlug = idOrName.toLowerCase().replace(/\s+/g, "-")
@@ -37,7 +34,7 @@ async function getStartupData(slug: string): Promise<Startup | null> {
     
     return startup || null
   } catch (error) {
-    console.error('[v0] Error loading startup:', error)
+    console.error('[v0] Error loading startup from Supabase:', error)
     return null
   }
 }

@@ -8,8 +8,23 @@ import { FundingCharts } from "@/components/funding-charts"
 import { AnalyticsTables } from "@/components/analytics-tables"
 import { AnalyticsInsights } from "@/components/analytics-insights"
 import { ChatBubble } from "@/components/chat-bubble"
-import type { AnalyticsData } from "@/lib/analytics-data"
-import type { Startup } from "@/lib/startups-data"
+
+interface AnalyticsData {
+  totalStartups: number
+  totalFunding: number
+  averageFunding: number
+  fundingByStage: { stage: string; amount: number; count: number }[]
+  fundingByYear: { year: number; amount: number; count: number }[]
+  locationDistribution: { location: string; count: number; percentage: number }[]
+  technologyDistribution: { technology: string; count: number; percentage: number }[]
+  fundingTrends: { year: number; cumulativeFunding: number; cumulativeStartups: number }[]
+  topFundedStartups: { name: string; funding: number; stage: string; location: string }[]
+  recentStartups: { name: string; year: number; funding: number; location: string }[]
+}
+
+interface Startup {
+  [key: string]: any
+}
 
 export default function AnalyticsPage() {
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null)
@@ -230,13 +245,12 @@ export default function AnalyticsPage() {
     <div className="min-h-screen bg-background">
       <Navigation />
 
-      <main className="py-8 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto space-y-8">
-          <div className="text-center space-y-4">
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-balance">Análisis del Ecosistema</h1>
-            <p className="text-xl text-muted-foreground text-balance max-w-3xl mx-auto">
-              Dashboard completo con métricas clave, tendencias de financiación y análisis profundo del sector
-              agroalimentario español.
+      <main className="py-6 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto space-y-6">
+          <div className="text-center space-y-2">
+            <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-balance">Análisis del Ecosistema</h1>
+            <p className="text-sm md:text-base text-muted-foreground text-balance max-w-2xl mx-auto">
+              Métricas clave, tendencias y análisis del sector agroalimentario español.
             </p>
           </div>
 

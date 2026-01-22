@@ -8,13 +8,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Search, X, Filter } from "lucide-react"
-import {
-  getAllTechnologies,
-  getAllLocations,
-  getAllFundingStages,
-  getAllImpacts,
-  getAllGenders,
-} from "@/lib/startups-data"
 
 export interface FilterState {
   search: string
@@ -30,6 +23,13 @@ interface StartupFiltersProps {
   filters: FilterState
   onFiltersChange: (filters: FilterState) => void
 }
+
+// Placeholder data - these will be derived from actual startups in the future
+const getAllTechnologies = () => ["IA", "IoT", "Blockchain", "Biotecnología"]
+const getAllLocations = () => ["Madrid", "Barcelona", "Valencia", "Cataluña"]
+const getAllFundingStages = () => ["Seed", "Serie A", "Serie B", "Crecimiento"]
+const getAllImpacts = () => ["Sostenibilidad", "Tecnología", "Innovación"]
+const getAllGenders = () => ["Mixto", "Femenino", "Masculino"]
 
 export function StartupFilters({ filters, onFiltersChange }: StartupFiltersProps) {
   const [isExpanded, setIsExpanded] = useState(false)

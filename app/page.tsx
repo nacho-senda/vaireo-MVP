@@ -2,8 +2,12 @@ import { Navigation } from "@/components/navigation"
 import { ChatInterface } from "@/components/chat-interface"
 import Link from "next/link"
 import { Database, BarChart3, FolderGit2 } from "lucide-react"
+import { cargarStartups } from "@/app/actions/load-startups"
 
-export default function HomePage() {
+export default async function HomePage() {
+  const { data: startups } = await cargarStartups()
+  const startupCount = startups?.length || 0
+
   return (
     <div className="min-h-screen bg-background">
       {/* Navigation */}
@@ -34,7 +38,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
             <div className="space-y-2">
-              <div className="text-4xl font-bold text-primary">75</div>
+              <div className="text-4xl font-bold text-primary">{startupCount}</div>
               <div className="text-muted-foreground">Startups Registradas</div>
             </div>
             <div className="space-y-2">
@@ -71,7 +75,7 @@ export default function HomePage() {
                 Directorio de Startups
               </h3>
               <p className="text-muted-foreground">
-                Explora las 75 startups innovadoras del sector agroalimentario español
+                Explora las {startupCount} startups innovadoras del sector agroalimentario español
               </p>
             </Link>
 

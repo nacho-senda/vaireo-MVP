@@ -2,8 +2,8 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { ExternalLink, MapPin, Calendar, Users, Building, Mail, Linkedin, Twitter } from 'lucide-react'
-import type { Startup } from "@/lib/startups-data"
-import { formatFunding } from "@/lib/startups-data"
+import { formatFunding } from "@/lib/utils/formatting"
+import type { Startup } from "@/lib/utils/formatting"
 
 interface StartupProfileHeaderProps {
   startup: Startup

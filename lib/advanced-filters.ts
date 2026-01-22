@@ -1,4 +1,78 @@
 // Advanced filtering system with AI-powered suggestions and semantic search
+
+// Helper functions to extract unique values from startups data
+export const getAllTechnologies = (startups: any[]): string[] => {
+  const values = new Set<string>()
+  startups.forEach((startup) => {
+    const value = startup.Tecnología || startup.tecnologia
+    if (value && typeof value === "string") {
+      value.split(",").forEach((v: string) => {
+        const trimmed = v.trim()
+        if (trimmed) values.add(trimmed)
+      })
+    }
+  })
+  return Array.from(values).sort()
+}
+
+export const getAllLocations = (startups: any[]): string[] => {
+  const values = new Set<string>()
+  startups.forEach((startup) => {
+    const value = startup["Región (CCAA)"] || startup.region
+    if (value && typeof value === "string" && value.trim()) {
+      values.add(value.trim())
+    }
+  })
+  return Array.from(values).sort()
+}
+
+export const getAllFundingStages = (startups: any[]): string[] => {
+  const values = new Set<string>()
+  startups.forEach((startup) => {
+    const value = startup["Nivel de madurez"] || startup.nivel_madurez
+    if (value && typeof value === "string" && value.trim()) {
+      values.add(value.trim())
+    }
+  })
+  return Array.from(values).sort()
+}
+
+export const getAllImpacts = (startups: any[]): string[] => {
+  const values = new Set<string>()
+  startups.forEach((startup) => {
+    const value = startup["Tipo de impacto"] || startup.tipo_impacto
+    if (value && typeof value === "string") {
+      value.split(",").forEach((v: string) => {
+        const trimmed = v.trim()
+        if (trimmed) values.add(trimmed)
+      })
+    }
+  })
+  return Array.from(values).sort()
+}
+
+export const getAllGenders = (startups: any[]): string[] => {
+  const values = new Set<string>()
+  startups.forEach((startup) => {
+    const value = startup["Diversidad del equipo"] || startup.diversidad_equipo
+    if (value && typeof value === "string" && value.trim()) {
+      values.add(value.trim())
+    }
+  })
+  return Array.from(values).sort()
+}
+
+export const getAllVerticals = (startups: any[]): string[] => {
+  const values = new Set<string>()
+  startups.forEach((startup) => {
+    const value = startup.Vertical || startup.vertical
+    if (value && typeof value === "string" && value.trim()) {
+      values.add(value.trim())
+    }
+  })
+  return Array.from(values).sort()
+}
+
 export interface FilterState {
   search: string
   locations: string[]
@@ -180,6 +254,8 @@ export const calculateCompatibility = (startup: any, filters: FilterState): numb
 
 // Semantic search function
 export const performSemanticSearch = (query: string, startups: any[]): any[] => {
+  if (!query || !startups || startups.length === 0) return startups || []
+  
   const lowerQuery = query.toLowerCase()
   const relevantTechs = new Set<string>()
 
@@ -192,16 +268,28 @@ export const performSemanticSearch = (query: string, startups: any[]): any[] => 
 
   // If no semantic matches, use direct text search
   if (relevantTechs.size === 0) {
-    return startups.filter(
-      (startup) =>
-        startup.name.toLowerCase().includes(lowerQuery) ||
-        startup.description.toLowerCase().includes(lowerQuery) ||
-        startup.technologyFocus.some((tech: string) => tech.toLowerCase().includes(lowerQuery)),
-    )
+    return startups.filter((startup) => {
+      const name = startup.Nombre || startup.name || ""
+      const description = startup.Descripción || startup.descripcion || startup.description || ""
+      const techs = typeof startup.Tecnología === 'string' 
+        ? startup.Tecnología.split(',').map((t: string) => t.trim())
+        : (startup.technologyFocus || [])
+      
+      return (
+        name.toLowerCase().includes(lowerQuery) ||
+        description.toLowerCase().includes(lowerQuery) ||
+        techs.some((tech: string) => tech && tech.toLowerCase().includes(lowerQuery))
+      )
+    })
   }
 
   // Filter by semantic technologies
-  return startups.filter((startup) => startup.technologyFocus.some((tech: string) => relevantTechs.has(tech)))
+  return startups.filter((startup) => {
+    const techs = typeof startup.Tecnología === 'string' 
+      ? startup.Tecnología.split(',').map((t: string) => t.trim())
+      : (startup.technologyFocus || [])
+    return techs.some((tech: string) => tech && relevantTechs.has(tech))
+  })
 }
 
 // Generate visualizations for filters

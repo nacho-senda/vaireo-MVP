@@ -26,6 +26,8 @@ export default function FilterSummaryBar({
     filters.locations.length > 0 ||
     filters.technologies.length > 0 ||
     filters.fundingStages.length > 0 ||
+    filters.impacts?.length > 0 ||
+    filters.founderGenders?.length > 0 ||
     filters.fundingRange[0] > 0 ||
     filters.fundingRange[1] < 50000000 ||
     filters.yearRange[0] > 2008 ||
@@ -61,6 +63,18 @@ export default function FilterSummaryBar({
       case "yearRange":
         onFiltersChange({ ...filters, yearRange: [2008, 2024] })
         break
+      case "impacts":
+        onFiltersChange({
+          ...filters,
+          impacts: filters.impacts?.filter((i) => i !== value) || [],
+        })
+        break
+      case "founderGenders":
+        onFiltersChange({
+          ...filters,
+          founderGenders: filters.founderGenders?.filter((g) => g !== value) || [],
+        })
+        break
     }
   }
 
@@ -75,6 +89,8 @@ export default function FilterSummaryBar({
       compatibility: 0,
       proximity: null,
       semanticQuery: "",
+      impacts: [],
+      founderGenders: [],
     })
   }
 
@@ -248,6 +264,40 @@ export default function FilterSummaryBar({
                     </Badge>
                   </motion.div>
                 )}
+
+                {filters.impacts?.map((impact) => (
+                  <motion.div
+                    key={impact}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                  >
+                    <Badge variant="default" className="gap-1.5">
+                      🎯 {impact}
+                      <X
+                        className="h-3 w-3 cursor-pointer hover:text-destructive-foreground"
+                        onClick={() => removeFilter("impacts", impact)}
+                      />
+                    </Badge>
+                  </motion.div>
+                ))}
+
+                {filters.founderGenders?.map((gender) => (
+                  <motion.div
+                    key={gender}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                  >
+                    <Badge variant="default" className="gap-1.5">
+                      👥 {gender}
+                      <X
+                        className="h-3 w-3 cursor-pointer hover:text-destructive-foreground"
+                        onClick={() => removeFilter("founderGenders", gender)}
+                      />
+                    </Badge>
+                  </motion.div>
+                ))}
               </AnimatePresence>
             </div>
           </div>

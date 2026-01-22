@@ -1,7 +1,13 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { TrendingUp, Building2, MapPin, Zap } from 'lucide-react'
-import { formatFunding } from "@/lib/startups-data"
-import type { AnalyticsData } from "@/lib/analytics-data"
+import { formatFunding } from "@/lib/utils/formatting"
+
+interface AnalyticsData {
+  totalStartups: number
+  totalFunding: number
+  averageFunding: number
+  locationDistribution: { location: string; count: number; percentage: number }[]
+}
 
 interface AnalyticsOverviewProps {
   data: AnalyticsData
@@ -40,17 +46,17 @@ export function AnalyticsOverview({ data }: AnalyticsOverviewProps) {
   ]
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
       {stats.map((stat, index) => (
-        <Card key={index}>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
-            <stat.icon className="h-4 w-4 text-muted-foreground" />
+        <Card key={index} className="relative overflow-hidden">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 pt-4 px-4">
+            <CardTitle className="text-xs font-medium text-muted-foreground">{stat.title}</CardTitle>
+            <stat.icon className="h-4 w-4 text-muted-foreground/60" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stat.value}</div>
-            <p className="text-xs text-muted-foreground mt-1">{stat.description}</p>
-            <div className="text-xs text-primary mt-2">{stat.trend}</div>
+          <CardContent className="pb-4 px-4">
+            <div className="text-xl md:text-2xl font-bold">{stat.value}</div>
+            <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1">{stat.description}</p>
+            <div className="text-[10px] text-primary mt-1 font-medium">{stat.trend}</div>
           </CardContent>
         </Card>
       ))}

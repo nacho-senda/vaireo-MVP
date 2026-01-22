@@ -8,7 +8,11 @@
  * Requiere configuración de variables de entorno y credenciales de HubSpot.
  */
 
-import type { Startup } from './startups-data'
+interface Startup {
+  nombre: string
+  descripcion?: string
+  [key: string]: any
+}
 
 // Configuración de HubSpot API
 const HUBSPOT_API_BASE = 'https://api.hubapi.com'

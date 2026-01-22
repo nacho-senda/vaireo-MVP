@@ -1,13 +1,13 @@
 "use client"
 import type React from "react"
 import { useState, useEffect, useRef } from "react"
+import ReactMarkdown from "react-markdown"
 
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import { Card } from "@/components/ui/card"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Loader2, Send, Sparkles, User } from "lucide-react"
+import { Loader2, Send, Sparkles, User, MessageSquare } from "lucide-react"
 
 interface Message {
   id: string
@@ -15,17 +15,37 @@ interface Message {
   content: string
 }
 
+const SUGGESTED_QUESTIONS = [
+  "Startups en proteína vegetal",
+  "Empresas más financiadas",
+  "Agricultura de precisión",
+  "Tecnologías en Cataluña",
+]
+
 export function ChatInterface() {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState("")
   const [isLoading, setIsLoading] = useState(false)
-  const scrollRef = useRef<HTMLDivElement>(null)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
+
+  // Auto-scroll al final cuando hay nuevos mensajes
+  const scrollToBottom = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({
+        top: scrollContainerRef.current.scrollHeight,
+        behavior: "smooth"
+      })
+    }
+  }
 
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight
-    }
+    scrollToBottom()
   }, [messages, isLoading])
+
+  const handleSuggestedQuestion = (question: string) => {
+    setInput(question)
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -64,15 +84,12 @@ export function ChatInterface() {
       }
 
       const decoder = new TextDecoder()
-
       const assistantId = Date.now().toString()
       let assistantMessage: Message | null = null
 
       while (true) {
         const { done, value } = await reader.read()
-        if (done) {
-          break
-        }
+        if (done) break
 
         const text = decoder.decode(value, { stream: true })
         if (text) {
@@ -102,127 +119,151 @@ export function ChatInterface() {
   }
 
   return (
-    <Card className="flex flex-col h-[480px] w-full max-w-4xl mx-auto shadow-lg border-0 overflow-hidden bg-gradient-to-b from-background to-muted/20">
-      <div className="flex items-center gap-3 px-4 py-3 border-b bg-background/95 backdrop-blur-sm shrink-0">
-        <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-primary/80 shadow-md shrink-0">
-          <Sparkles className="w-4 h-4 text-primary-foreground" />
+    <Card className="!p-0 !gap-0 flex flex-col h-[380px] w-full max-w-3xl mx-auto shadow-xl border border-border/50 overflow-hidden bg-background">
+      {/* Header - Compact */}
+      <div className="flex items-center gap-2 px-3 py-1.5 border-b bg-background backdrop-blur-md shrink-0">
+        <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary shadow-md shrink-0">
+          <Sparkles className="w-3.5 h-3.5 text-primary-foreground" />
         </div>
         <div className="min-w-0 flex-1">
-          <h2 className="text-sm font-bold leading-tight text-foreground truncate">Asistente Vaireo</h2>
-          <p className="text-xs text-muted-foreground leading-tight flex items-center gap-1.5 truncate">
-            <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse shrink-0" />
-            <span className="truncate">En línea • Experto en agroalimentación</span>
-          </p>
+          <h2 className="text-sm font-bold leading-tight text-foreground">Asistente Vaireo</h2>
         </div>
       </div>
 
-      <div className="flex-1 overflow-hidden min-h-0">
-        <ScrollArea className="h-full px-4 py-4" ref={scrollRef}>
-          <div className="space-y-3">
-            {messages.length === 0 && (
-              <div className="flex flex-col items-center justify-center py-8 text-center">
-                <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/10 mb-3 shadow-sm">
-                  <Sparkles className="w-7 h-7 text-primary" />
-                </div>
-                <h3 className="text-base font-bold mb-2 text-foreground">¡Hola! Soy tu asistente Vaireo</h3>
-                <p className="text-sm text-muted-foreground max-w-md leading-relaxed px-4">
-                  Estoy aquí para ayudarte con información sobre startups agroalimentarias, análisis del sector y
-                  tendencias del mercado.
-                </p>
+      {/* Messages Container - Native scroll */}
+      <div 
+        ref={scrollContainerRef}
+        className="flex-1 overflow-y-auto overscroll-contain px-3 py-2.5 scroll-smooth"
+        style={{ scrollbarGutter: "stable" }}
+      >
+        <div className={messages.length === 0 ? "h-full flex items-center justify-center" : "space-y-3"}>
+          {/* Welcome State */}
+          {messages.length === 0 && (
+            <div className="flex flex-col items-center justify-center text-center">
+              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-muted mb-2 shadow-inner">
+                <MessageSquare className="w-5 h-5 text-primary" />
               </div>
-            )}
-
-            {messages.map((message) => (
-              <div
-                key={message.id}
-                className={`flex gap-2.5 items-start min-w-0 ${message.role === "user" ? "justify-end" : "justify-start"}`}
-              >
-                {message.role === "assistant" && (
-                  <Avatar className="w-7 h-7 shadow-sm shrink-0 mt-0.5">
-                    <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground">
-                      <Sparkles className="w-3.5 h-3.5" />
-                    </AvatarFallback>
-                  </Avatar>
-                )}
-
-                <div
-                  className={`rounded-2xl px-3.5 py-2.5 max-w-[80%] min-w-0 shadow-sm ${
-                    message.role === "user"
-                      ? "bg-gradient-to-br from-primary to-primary/90 text-primary-foreground rounded-br-md"
-                      : "bg-card text-card-foreground border border-border/50 rounded-bl-md"
-                  }`}
-                >
-                  <p className="text-sm leading-relaxed whitespace-pre-wrap break-words overflow-wrap-anywhere">
-                    {message.content}
-                  </p>
+              <h3 className="font-bold mb-1 text-foreground text-lg">Asistente Vaireo</h3>
+              <p className="text-muted-foreground max-w-sm leading-snug mb-2.5 text-sm">
+                Información sobre startups agroalimentarias y el sector.
+              </p>
+              
+              {/* Suggested Questions */}
+              <div className="w-full max-w-md">
+                <div className="grid grid-cols-2 gap-1.5">
+                  {SUGGESTED_QUESTIONS.map((question, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => handleSuggestedQuestion(question)}
+                      className="text-center text-[10px] px-2 py-1.5 rounded-md bg-muted hover:bg-accent border border-border hover:border-primary transition-all text-muted-foreground hover:text-foreground leading-tight"
+                    >
+                      {question}
+                    </button>
+                  ))}
                 </div>
-
-                {message.role === "user" && (
-                  <Avatar className="w-7 h-7 shadow-sm shrink-0 mt-0.5">
-                    <AvatarFallback className="bg-gradient-to-br from-secondary to-secondary/80">
-                      <User className="w-3.5 h-3.5" />
-                    </AvatarFallback>
-                  </Avatar>
-                )}
               </div>
-            ))}
+            </div>
+          )}
 
-            {isLoading && (
-              <div className="flex gap-2.5 items-start justify-start min-w-0">
-                <Avatar className="w-7 h-7 shadow-sm shrink-0 mt-0.5">
-                  <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground">
-                    <Sparkles className="w-3.5 h-3.5" />
+          {/* Messages */}
+          {messages.map((message) => (
+            <div
+              key={message.id}
+              className={`flex gap-3 items-start animate-in fade-in-0 slide-in-from-bottom-2 duration-300 ${
+                message.role === "user" ? "justify-end" : "justify-start"
+              }`}
+            >
+              {message.role === "assistant" && (
+                <Avatar className="w-8 h-8 shadow-md shrink-0 mt-0.5 ring-2 ring-background">
+                  <AvatarFallback className="bg-primary text-primary-foreground">
+                    <Sparkles className="w-4 h-4" />
                   </AvatarFallback>
                 </Avatar>
-                <div className="rounded-2xl rounded-bl-md px-3.5 py-2.5 bg-card border border-border/50 shadow-sm">
-                  <div className="flex items-center gap-2">
-                    <Loader2 className="w-4 h-4 animate-spin text-primary" />
-                    <span className="text-sm text-muted-foreground flex items-center gap-1.5">
-                      Pensando
-                      <span className="flex gap-1">
-                        <span className="inline-block w-1.5 h-1.5 bg-primary/60 rounded-full animate-bounce [animation-delay:0ms]" />
-                        <span className="inline-block w-1.5 h-1.5 bg-primary/60 rounded-full animate-bounce [animation-delay:150ms]" />
-                        <span className="inline-block w-1.5 h-1.5 bg-primary/60 rounded-full animate-bounce [animation-delay:300ms]" />
-                      </span>
-                    </span>
+              )}
+
+              <div
+                className={`rounded-2xl px-4 py-3 max-w-[75%] min-w-0 shadow-md ${
+                  message.role === "user"
+                    ? "bg-primary text-primary-foreground rounded-br-sm"
+                    : "bg-card text-card-foreground border border-border rounded-bl-sm"
+                }`}
+              >
+                {message.role === "user" ? (
+                  <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
+                    {message.content}
+                  </p>
+                ) : (
+                  <div className="text-sm leading-relaxed prose prose-sm prose-neutral dark:prose-invert max-w-none [&>p]:mb-2 [&>p:last-child]:mb-0 [&>ul]:mb-2 [&>ol]:mb-2 [&>h1]:text-base [&>h1]:font-bold [&>h1]:mb-2 [&>h2]:text-sm [&>h2]:font-bold [&>h2]:mb-2 [&>h3]:text-sm [&>h3]:font-semibold [&>h3]:mb-1 [&>ul]:pl-4 [&>ol]:pl-4 [&>li]:mb-0.5 [&>strong]:font-semibold [&>code]:bg-muted [&>code]:px-1 [&>code]:py-0.5 [&>code]:rounded [&>code]:text-xs">
+                    <ReactMarkdown>{message.content}</ReactMarkdown>
                   </div>
+                )}
+              </div>
+
+              {message.role === "user" && (
+                <Avatar className="w-8 h-8 shadow-md shrink-0 mt-0.5 ring-2 ring-background">
+                  <AvatarFallback className="bg-muted">
+                    <User className="w-4 h-4 text-muted-foreground" />
+                  </AvatarFallback>
+                </Avatar>
+              )}
+            </div>
+          ))}
+
+          {/* Loading State */}
+          {isLoading && (
+            <div className="flex gap-3 items-start justify-start animate-in fade-in-0 slide-in-from-bottom-2 duration-300">
+              <Avatar className="w-8 h-8 shadow-md shrink-0 mt-0.5 ring-2 ring-background">
+                <AvatarFallback className="bg-primary text-primary-foreground">
+                  <Sparkles className="w-4 h-4" />
+                </AvatarFallback>
+              </Avatar>
+              <div className="rounded-2xl rounded-bl-sm px-4 py-3 bg-card border border-border shadow-md">
+                <div className="flex items-center gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                  <span className="text-sm text-muted-foreground flex items-center gap-1.5">
+                    Pensando
+                    <span className="flex gap-0.5">
+                      <span className="inline-block w-1.5 h-1.5 bg-primary rounded-full animate-bounce [animation-delay:0ms]" />
+                      <span className="inline-block w-1.5 h-1.5 bg-primary rounded-full animate-bounce [animation-delay:150ms]" />
+                      <span className="inline-block w-1.5 h-1.5 bg-primary rounded-full animate-bounce [animation-delay:300ms]" />
+                    </span>
+                  </span>
                 </div>
               </div>
-            )}
-          </div>
-        </ScrollArea>
+            </div>
+          )}
+
+          {/* Scroll anchor */}
+          <div ref={messagesEndRef} />
+        </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="p-3 border-t bg-background/95 backdrop-blur-sm shrink-0">
-        <div className="flex gap-2.5 items-end">
-          <div className="flex-1 relative min-w-0">
-            <Textarea
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Escribe tu pregunta aquí..."
-              className="min-h-[48px] max-h-[96px] resize-none text-sm rounded-xl border-border/50 focus-visible:ring-2 focus-visible:ring-primary/20 shadow-sm"
-              disabled={isLoading}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault()
-                  handleSubmit(e)
-                }
-              }}
-            />
-          </div>
+      {/* Input Form - Compact */}
+      <form onSubmit={handleSubmit} className="px-3 py-1.5 border-t bg-background backdrop-blur-md shrink-0">
+        <div className="flex gap-2 items-center">
+          <Textarea
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Escribe tu pregunta..."
+            className="flex-1 min-h-[36px] max-h-[60px] resize-none text-sm rounded-lg border-border bg-muted focus-visible:ring-1 focus-visible:ring-primary focus-visible:border-primary shadow-sm transition-all py-1.5 px-3"
+            disabled={isLoading}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault()
+                handleSubmit(e)
+              }
+            }}
+          />
           <Button
             type="submit"
             size="icon"
-            className="h-[48px] w-[48px] shrink-0 rounded-xl shadow-md bg-gradient-to-br from-primary to-primary/90 hover:from-primary/90 hover:to-primary transition-all"
+            className="h-[36px] w-[36px] shrink-0 rounded-lg shadow-md bg-primary hover:bg-primary hover:opacity-90 hover:shadow-lg transition-all"
             disabled={isLoading || !input.trim()}
           >
-            {isLoading ? <Loader2 className="w-4.5 h-4.5 animate-spin" /> : <Send className="w-4.5 h-4.5" />}
+            {isLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
           </Button>
         </div>
-        <p className="text-[11px] text-muted-foreground mt-1.5 leading-tight px-1 truncate">
-          <kbd className="px-1.5 py-0.5 text-[10px] font-semibold bg-muted rounded">Enter</kbd> enviar •{" "}
-          <kbd className="px-1.5 py-0.5 text-[10px] font-semibold bg-muted rounded">Shift+Enter</kbd> nueva línea
-        </p>
       </form>
     </Card>
   )

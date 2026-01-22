@@ -8,16 +8,30 @@ import AdvancedFilterOverlay from "@/components/advanced-filter-overlay"
 import FilterSummaryBar from "@/components/filter-summary-bar"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { type Startup } from "@/lib/startups-data"
 import { type FilterState, calculateCompatibility, performSemanticSearch } from "@/lib/advanced-filters"
-import { addStartupToProject } from "@/lib/projects-data"
 import { ArrowUpDown, Sparkles } from 'lucide-react'
 import { motion, AnimatePresence } from "framer-motion"
 import { ChatBubble } from "@/components/chat-bubble"
 import { SelectProjectDialog } from "@/components/select-project-dialog"
 import { useToast } from "@/hooks/use-toast"
+import { addStartupToProject } from "@/app/actions/add-startup-to-project" // Import addStartupToProject
 
-type SortOption = "name" | "funding" | "year" | "location" | "compatibility"
+interface Startup {
+  ID: string
+  Nombre: string
+  Descripción: string
+  "Región (CCAA)": string
+  Año: string
+  Vertical: string
+  Subvertical: string
+  Tecnología: string
+  Web: string
+  "Nivel de madurez": string
+  "Inversión total (€)": string
+  "Tipo de impacto": string
+  "Diversidad del equipo": string
+  compatibilityScore?: number
+}
 
 export default function StartupsPage() {
   const [startups, setStartups] = useState<Startup[]>([])
@@ -38,7 +52,7 @@ export default function StartupsPage() {
     founderGenders: [],
   })
 
-  const [sortBy, setSortBy] = useState<SortOption>("name")
+  const [sortBy, setSortBy] = useState<"name" | "funding" | "year" | "location" | "compatibility">("name")
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc")
   const [isFilterOverlayOpen, setIsFilterOverlayOpen] = useState(false)
   const [selectedStartup, setSelectedStartup] = useState<Startup | null>(null)
@@ -192,17 +206,23 @@ export default function StartupsPage() {
     setIsProjectDialogOpen(true)
   }
 
-  const handleSelectProject = (projectId: string, startupName: string) => {
-    const success = addStartupToProject(projectId, startupName)
-    if (success) {
-      toast({
-        title: "Startup añadida",
-        description: `${startupName} ha sido añadida al proyecto correctamente.`,
-      })
-    } else {
+  const handleSelectProject = async (projectId: string, startupName: string) => {
+    try {
+      const result = await addStartupToProject(projectId, startupName)
+
+      if (result.success) {
+        toast({
+          title: "Startup añadida",
+          description: `${startupName} ha sido añadida al proyecto correctamente.`,
+        })
+      } else {
+        throw new Error(result.error || "Failed to add startup to project")
+      }
+    } catch (error) {
+      console.error("Error adding startup to project:", error)
       toast({
         title: "Error",
-        description: "No se pudo añadir la startup al proyecto.",
+        description: error instanceof Error ? error.message : "No se pudo añadir la startup al proyecto.",
         variant: "destructive",
       })
     }
@@ -298,7 +318,7 @@ export default function StartupsPage() {
             </div>
 
             <div className="flex items-center gap-2">
-              <Select value={sortBy} onValueChange={(value: SortOption) => setSortBy(value)}>
+              <Select value={sortBy} onValueChange={(value: "name" | "funding" | "year" | "location" | "compatibility") => setSortBy(value)}>
                 <SelectTrigger className="w-48">
                   <SelectValue />
                 </SelectTrigger>
@@ -386,6 +406,7 @@ export default function StartupsPage() {
         filters={filters}
         onFiltersChange={setFilters}
         filteredStartups={filteredAndSortedStartups}
+        startupsData={startups}
       />
 
       <SelectProjectDialog
