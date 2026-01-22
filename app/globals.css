@@ -149,6 +149,37 @@
   }
 }
 
+/* Animation keyframes for Radix UI components */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes zoomIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes zoomOut {
+  from { opacity: 1; transform: scale(1); }
+  to { opacity: 0; transform: scale(0.95); }
+}
+
+@keyframes slideInFromTop {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInFromBottom {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 /* Animation utilities for zoom-in/out - fixes tw-animate-css bug */
 @utility zoom-in-* {
   --tw-enter-scale: calc(var(--value) / 100);
@@ -156,6 +187,45 @@
 
 @utility zoom-out-* {
   --tw-exit-scale: calc(var(--value) / 100);
+}
+
+/* Explicit animation classes for Radix components */
+@layer utilities {
+  .animate-in {
+    animation-duration: 150ms;
+    animation-timing-function: ease-out;
+    animation-fill-mode: both;
+  }
+  
+  .animate-out {
+    animation-duration: 100ms;
+    animation-timing-function: ease-in;
+    animation-fill-mode: both;
+  }
+  
+  .fade-in-0 {
+    animation-name: fadeIn;
+  }
+  
+  .fade-out-0 {
+    animation-name: fadeOut;
+  }
+  
+  .zoom-in-95 {
+    animation-name: zoomIn;
+  }
+  
+  .zoom-out-95 {
+    animation-name: zoomOut;
+  }
+  
+  .slide-in-from-top-2 {
+    animation-name: slideInFromTop;
+  }
+  
+  .slide-in-from-bottom-2 {
+    animation-name: slideInFromBottom;
+  }
 }
 
 /* Added custom gradient and animation utilities for hero section */
