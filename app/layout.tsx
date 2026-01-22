@@ -32,6 +32,7 @@ export default function RootLayout({
       <body className="font-sans antialiased">
         <Suspense fallback={null}>{children}</Suspense>
         <ChatBubble />
+        <div id="radix-portal" />
       </body>
     </html>
   )

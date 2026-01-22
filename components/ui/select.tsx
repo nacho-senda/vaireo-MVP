@@ -57,25 +57,29 @@ function SelectContent({
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Content>) {
   return (
-    <SelectPrimitive.Portal>
+    <SelectPrimitive.Portal container={typeof document !== 'undefined' ? document.getElementById('radix-portal') || document.body : undefined}>
       <SelectPrimitive.Content
         data-slot="select-content"
-        className={cn(
-          'bg-popover text-popover-foreground relative z-[9999] max-h-[300px] min-w-[8rem] overflow-x-hidden overflow-y-auto rounded-md border shadow-md',
-          position === 'popper' &&
-            'data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1',
-          className,
-        )}
+        style={{
+          position: 'relative',
+          zIndex: 9999,
+          maxHeight: '300px',
+          minWidth: '8rem',
+          overflowX: 'hidden',
+          overflowY: 'auto',
+          borderRadius: '0.375rem',
+          border: '1px solid hsl(var(--border))',
+          boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
+          backgroundColor: 'hsl(var(--popover))',
+          color: 'hsl(var(--popover-foreground))',
+        }}
+        className={cn(className)}
         position={position}
         {...props}
       >
         <SelectScrollUpButton />
         <SelectPrimitive.Viewport
-          className={cn(
-            'p-1',
-            position === 'popper' &&
-              'w-full min-w-[var(--radix-select-trigger-width)] scroll-my-1',
-          )}
+          style={{ padding: '0.25rem', width: '100%' }}
         >
           {children}
         </SelectPrimitive.Viewport>

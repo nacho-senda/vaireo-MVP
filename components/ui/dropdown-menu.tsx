@@ -37,14 +37,24 @@ function DropdownMenuContent({
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Content>) {
   return (
-    <DropdownMenuPrimitive.Portal>
+    <DropdownMenuPrimitive.Portal container={typeof document !== 'undefined' ? document.getElementById('radix-portal') || document.body : undefined}>
       <DropdownMenuPrimitive.Content
         data-slot="dropdown-menu-content"
         sideOffset={sideOffset}
-        className={cn(
-          'bg-popover text-popover-foreground z-[9999] max-h-[300px] min-w-[8rem] overflow-x-hidden overflow-y-auto rounded-md border p-1 shadow-md',
-          className,
-        )}
+        style={{
+          zIndex: 9999,
+          maxHeight: '300px',
+          minWidth: '8rem',
+          overflowX: 'hidden',
+          overflowY: 'auto',
+          borderRadius: '0.375rem',
+          border: '1px solid hsl(var(--border))',
+          padding: '0.25rem',
+          boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
+          backgroundColor: 'hsl(var(--popover))',
+          color: 'hsl(var(--popover-foreground))',
+        }}
+        className={cn(className)}
         {...props}
       />
     </DropdownMenuPrimitive.Portal>
