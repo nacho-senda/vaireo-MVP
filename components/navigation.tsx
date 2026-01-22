@@ -94,17 +94,23 @@ export function Navigation() {
                   <span className="max-w-[120px] truncate">{user.email}</span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuContent align="end" className="w-56" sideOffset={8}>
                 <DropdownMenuItem asChild>
-                  <Link href="/projects" className="flex items-center gap-2">
+                  <Link href="/projects" className="flex items-center gap-2 cursor-pointer">
                     <FolderOpen className="h-4 w-4" />
                     Mis Proyectos
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Cerrar sesión
+                <DropdownMenuItem asChild>
+                  <button 
+                    type="button"
+                    onClick={handleSignOut} 
+                    className="flex items-center gap-2 w-full text-destructive cursor-pointer"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Cerrar sesión
+                  </button>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
